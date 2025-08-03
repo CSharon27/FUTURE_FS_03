@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soundora - Music Reimagined</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #000;
+            color: white;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Audio Visualizer Background */
+        .audio-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            background: radial-gradient(circle at 30% 70%, rgba(100, 50, 150, 0.3) 0%, transparent 50%),
+                       radial-gradient(circle at 80% 20%, rgba(50, 120, 100, 0.25) 0%, transparent 50%),
+                       radial-gradient(circle at 10% 30%, rgba(80, 60, 140, 0.2) 0%, transparent 50%),
+                       linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+        }
+
+        .sound-waves {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 200px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 4px;
+            opacity: 0.6;
+        }
+
+        .wave-bar {
+            width: 8px;
+            background: linear-gradient(to top, rgba(100, 50, 150, 0.6), rgba(50, 120, 100, 0.5), rgba(80, 60, 140, 0.4));
+            border-radius: 4px 4px 0 0;
+            animation: wave 1.5s ease-in-out infinite;
+        }
+
+        @keyframes wave {
+            0%, 100% { height: 20px; }
+            50% { height: 120px; }
+        }
+
+        /* Floating music notes */
+        .music-notes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .note {
+            position: absolute;
+            font-size: 2rem;
+            color: rgba(255, 255, 255, 0.1);
+            animation: float-note 8s linear infinite;
+        }
+
+        @keyframes float-note {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10%, 90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(30px);
+            border-bottom: 1px solid rgba(255, 0, 128, 0.2);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.2rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, rgba(120, 70, 180, 0.9), rgba(70, 140, 120, 0.8), rgba(100, 80, 160, 0.85));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+        }
+
+        .logo::after {
+            content: '🎵';
+            position: absolute;
+            right: -40px;
+            top: 50%;
+            transform: translateY(-50%);
+            animation: pulse-music 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-music {
+            0%, 100% { transform: translateY(-50%) scale(1); }
+            50% { transform: translateY(-50%) scale(1.2); }
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+        }
+
+        .nav-menu a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 0.5rem 0;
+        }
+
+        .nav-menu a::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 3px;
+            background: linear-gradient(45deg, rgba(120, 70, 180, 0.8), rgba(70, 140, 120, 0.7));
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .nav-menu a:hover {
+            color: rgba(70, 140, 120, 0.9);
+            transform: translateY(-2px);
+        }
+
+        .nav-menu a:hover::before {
+            width: 100%;
+        }
+
+        .premium-btn {
+            background: linear-gradient(45deg, #ff0080, #8000ff);
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 30px;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(255, 0, 128, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .premium-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .premium-btn:hover::before {
+            left: 100%;
+        }
+
+        .premium-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(255, 0, 128, 0.6);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            padding: 0 2rem;
+        }
+
+        .hero-content {
+            max-width: 900px;
+            animation: fadeInUp 1.2s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(60px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero h1 {
+            font-size: clamp(3.5rem, 10vw, 7rem);
+            font-weight: 900;
+            margin-bottom: 2rem;
+            background: linear-gradient(45deg, rgba(120, 70, 180, 0.9), rgba(70, 140, 120, 0.8), rgba(100, 80, 160, 0.85), rgba(120, 70, 180, 0.9));
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: rainbow 4s ease-in-out infinite;
+            text-shadow: 0 0 30px rgba(120, 70, 180, 0.3);
+        }
+
+        @keyframes rainbow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 300;
+        }
+
+        .hero-description {
+            font-size: 1.2rem;
+            margin-bottom: 3rem;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.7;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 1.2rem 3rem;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .primary-action {
+            background: linear-gradient(45deg, rgba(120, 70, 180, 0.8), rgba(70, 140, 120, 0.7));
+            color: white;
+            box-shadow: 0 15px 35px rgba(120, 70, 180, 0.3);
+        }
+
+        .primary-action:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 20px 45px rgba(120, 70, 180, 0.4);
+        }
+
+        .secondary-action {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 2px solid rgba(70, 140, 120, 0.4);
+            backdrop-filter: blur(20px);
+        }
+
+        .secondary-action:hover {
+            background: rgba(70, 140, 120, 0.15);
+            transform: translateY(-5px);
+            border-color: rgba(70, 140, 120, 0.6);
+        }
+
+        /* Features Section */
+        .features {
+            padding: 120px 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 5rem;
+        }
+
+        .section-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(45deg, rgba(120, 70, 180, 0.8), rgba(70, 140, 120, 0.7));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-subtitle {
+            font-size: 1.3rem;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 3rem;
+            margin-top: 4rem;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 25px;
+            padding: 3rem 2.5rem;
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 0, 128, 0.1);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(255, 0, 128, 0.1), transparent);
+            animation: rotate 4s linear infinite;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .feature-card:hover {
+            transform: translateY(-15px);
+            box-shadow: 0 30px 60px rgba(255, 0, 128, 0.2);
+            border-color: rgba(255, 0, 128, 0.3);
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, #ff0080, #00ff80);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .feature-card h3 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: white;
+            position: relative;
+            z-index: 2;
+        }
+
+        .feature-card p {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.7;
+            font-size: 1.1rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Music Player Demo */
+        .player-demo {
+            padding: 120px 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .player-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 30px;
+            padding: 3rem;
+            backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 0, 128, 0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .now-playing {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .album-art {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(45deg, rgba(120, 70, 180, 0.7), rgba(70, 140, 120, 0.6), rgba(100, 80, 160, 0.65));
+            border-radius: 20px;
+            margin: 0 auto 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            animation: spin 10s linear infinite;
+            position: relative;
+        }
+
+        .album-art::after {
+            content: '';
+            position: absolute;
+            inset: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 50%;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .track-info h3 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            color: white;
+        }
+
+        .track-info p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.2rem;
+        }
+
+        .player-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .control-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .play-btn {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, #ff0080, #00ff80);
+            font-size: 2rem;
+        }
+
+        .control-btn:hover {
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .play-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 10px 30px rgba(255, 0, 128, 0.5);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 2rem 0;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(45deg, #ff0080, #00ff80);
+            width: 35%;
+            border-radius: 3px;
+            animation: progress 3s ease-in-out infinite;
+        }
+
+        @keyframes progress {
+            0%, 100% { width: 35%; }
+            50% { width: 65%; }
+        }
+
+        /* Playlists Section */
+        .playlists {
+            padding: 120px 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .playlist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 4rem;
+        }
+
+        .playlist-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .playlist-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 20px 40px rgba(120, 70, 180, 0.2);
+        }
+
+        .playlist-cover {
+            height: 200px;
+            background: linear-gradient(135deg, rgba(120, 70, 180, 0.7), rgba(70, 140, 120, 0.6), rgba(100, 80, 160, 0.65));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            position: relative;
+        }
+
+        .playlist-cover::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .playlist-info {
+            padding: 1.5rem;
+        }
+
+        .playlist-info h4 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: white;
+        }
+
+        .playlist-info p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        /* Footer */
+        footer {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 4rem 2rem 2rem;
+            position: relative;
+            z-index: 10;
+            border-top: 1px solid rgba(255, 0, 128, 0.1);
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: rgba(70, 140, 120, 0.8);
+            transform: translateY(-2px);
+        }
+
+        .footer-text {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+        }
+
+        /* Floating Music Widget */
+        .music-widget {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(45deg, #ff0080, #00ff80);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(255, 0, 128, 0.4);
+            z-index: 1000;
+            animation: bounce-music 3s ease-in-out infinite;
+            font-size: 1.5rem;
+        }
+
+        @keyframes bounce-music {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-10px) scale(1.1); }
+        }
+
+        .music-widget:hover {
+            transform: scale(1.2);
+            box-shadow: 0 15px 40px rgba(255, 0, 128, 0.6);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+            
+            .hero-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .features-grid, .playlist-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .player-container {
+                padding: 2rem;
+            }
+            
+            .album-art {
+                width: 150px;
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Audio Background -->
+    <div class="audio-bg">
+        <div class="sound-waves" id="soundWaves"></div>
+    </div>
+
+    <!-- Floating Music Notes -->
+    <div class="music-notes" id="musicNotes"></div>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">SOUNDORA</div>
+            <ul class="nav-menu">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#discover">Discover</a></li>
+                <li><a href="#playlists">Playlists</a></li>
+                <li><a href="#live">Live</a></li>
+                <li><a href="#podcasts">Podcasts</a></li>
+            </ul>
+            <button class="premium-btn" onclick="upgradePremium()">Go Premium</button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="hero-content">
+            <h1>Feel the Beat</h1>
+            <div class="hero-subtitle">AI-Powered Music Revolution</div>
+            <p class="hero-description">Experience music like never before with intelligent playlists, immersive audio, and social discovery powered by advanced AI that understands your musical soul.</p>
+            <div class="hero-actions">
+                <button class="action-btn primary-action" onclick="startListening()">
+                    🎵 Start Listening
+                </button>
+                <button class="action-btn secondary-action" onclick="exploreFeatures()">
+                    🚀 Explore Features
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="discover">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Revolutionary Features</h2>
+                <p class="section-subtitle">Discover how AI is transforming the way you experience music</p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🧠</div>
+                    <h3>AI Music Intelligence</h3>
+                    <p>Our neural networks analyze your listening patterns, mood, and even your heart rate to create perfectly curated playlists that evolve with your emotions throughout the day.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🎚️</div>
+                    <h3>Spatial Audio Experience</h3>
+                    <p>Immerse yourself in 360-degree sound with AI-enhanced spatial audio that adapts to your environment and creates a concert-hall experience anywhere you go.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">👥</div>
+                    <h3>Social Music Discovery</h3>
+                    <p>Connect with friends and discover new music through AI-powered social features that match you with people who share your musical DNA and taste evolution.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🎭</div>
+                    <h3>Mood-Based Mixing</h3>
+                    <p>AI DJs create seamless transitions between songs, adjusting tempo, key, and energy levels to maintain the perfect flow for any activity or emotional state.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🎤</div>
+                    <h3>Voice-Controlled Everything</h3>
+                    <p>Simply speak your desires - "Play something for a romantic dinner" or "I need motivation for my workout" - and watch AI craft the perfect musical experience.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Predictive Discovery</h3>
+                    <p>Discover your next favorite artist before they go viral. Our AI predicts musical trends and introduces you to emerging talents that match your unique taste profile.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Music Player Demo -->
+    <section class="player-demo">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">AI-Powered Player</h2>
+                <p class="section-subtitle">Experience the future of music streaming</p>
+            </div>
+            
+            <div class="player-container">
+                <div class="now-playing">
+                    <div class="album-art">🎵</div>
+                    <div class="track-info">
+                        <h3>Neural Harmony</h3>
+                        <p>AI Generated • Perfectly crafted for your mood</p>
+                    </div>
+                </div>
+                
+                <div class="player-controls">
+                    <button class="control-btn" onclick="previousTrack()">⏮️</button>
+                    <button class="control-btn play-btn" onclick="togglePlay()" id="playBtn">▶️</button>
+                    <button class="control-btn" onclick="nextTrack()">⏭️</button>
+                </div>
+                
+                <div class="progress-bar">
+                    <div class="progress"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Playlists Section -->
+    <section class="playlists" id="playlists">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">AI-Curated Playlists</h2>
+                <p class="section-subtitle">Discover personalized collections that understand your vibe</p>
+            </div>
+            
+            <div class="playlist-grid">
+                <div class="playlist-card" onclick="openPlaylist('focus')">
+                    <div class="playlist-cover">🧘</div>
+                    <div class="playlist-info">
+                        <h4>Deep Focus Flow</h4>
+                        <p>AI-optimized tracks for maximum concentration and productivity</p>
+                    </div>
+                </div>
+                
+                <div class="playlist-card" onclick="openPlaylist('workout')">
+                    <div class="playlist-cover">💪</div>
+                    <div class="playlist-info">
+                        <h4>High Energy Pump</h4>
+                        <p>BPM-matched tracks that sync with your workout intensity</p>
+                    </div>
+                </div>
+                
+                <div class="playlist-card" onclick="openPlaylist('chill')">
+                    <div class="playlist-cover">🌙</div>
+                    <div class="playlist-info">
+                        <h4>Midnight Vibes</h4>
+                        <p>Smooth transitions for late-night listening and relaxation</p>
+                    </div>
+                </div>
+                
+                <div class="playlist-card" onclick="openPlaylist('discover')">
+                    <div class="playlist-cover">🔮</div>
+                    <div class="playlist-info">
+                        <h4>Discovery Mix</h4>
+                        <p>Hidden gems and emerging artists tailored to your taste</p>
+                    </div>
+                </div>
+                
+                <div class="playlist-card" onclick="openPlaylist('social')">
+                    <div class="playlist-cover">🎉</div>
+                    <div class="playlist-info">
+                        <h4>Friend Zone</h4>
+                        <p>Collaborative playlist with your music-loving friends</p>
+                    </div>
+                </div>
+                
+                <div class="playlist-card" onclick="openPlaylist('ai')">
+                    <div class="playlist-cover">🤖</div>
+                    <div class="playlist-info">
+                        <h4>AI Compositions</h4>
+                        <p>Original music created by artificial intelligence just for you</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="#about">About</a>
+                <a href="#careers">Careers</a>
+                <a href="#support">Support</a>
+                <a href="#privacy">Privacy</a>
+                <a href="#terms">Terms</a>
+                <a href="#developers">Developers</a>
+            </div>
+            <p class="footer-text">&copy; 2025 SOUNDWAVE. Powered by Advanced AI Music Intelligence. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Floating Music Widget -->
+    <div class="music-widget" onclick="openMusicAssistant()" title="AI Music Assistant">
+        🎧
+    </div>
+
+    <script>
+        // Create sound wave bars
+        function createSoundWaves() {
+            const container = document.getElementById('soundWaves');
+            for (let i = 0; i < 50; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'wave-bar';
+                bar.style.animationDelay = `${i * 0.1}s`;
+                bar.style.animationDuration = `${1 + Math.random()}s`;
+                container.appendChild(bar);
+            }
+        }
+
+        // Create floating music notes
+        function createMusicNotes() {
+            const container = document.getElementById('musicNotes');
+            const notes = ['♪', '♫', '♬', '♩', '♯', '♭'];
+            
+            setInterval(() => {
+                const note = document.createElement('div');
+                note.className = 'note';
+                note.textContent = notes[Math.floor(Math.random() * notes.length)];
+                note.style.left = Math.random() * 100 + '%';
+                note.style.fontSize = (1 + Math.random()) + 'rem';
+                container.appendChild(note);
+                
+                setTimeout(() => {
+                    note.remove();
+                }, 8000);
+            }, 2000);
+        }
+
+        // Navigation scroll effect
+        window.addEventListener('scroll', () => {
+            const nav = document.querySelector('nav');
+            if (window.scrollY > 100) {
+                nav.style.background = 'rgba(0, 0, 0, 0.95)';
+                nav.style.borderBottomColor = 'rgba(255, 0, 128, 0.4)';
+            } else {
+                nav.style.background = 'rgba(0, 0, 0, 0.9)';
+                nav.style.borderBottomColor = 'rgba(255, 0, 128, 0.2)';
+            }
+        });
+
+        // Interactive functions
+        function upgradePremium() {
+            alert('🎵 Welcome to SOUNDWAVE Premium! \n\n✨ Unlimited skips\n🎧 High-quality audio\n🧠 Advanced AI features\n🎤 Voice controls\n🌍 Offline listening\n\nYour premium experience starts now!');
+        }
+
+        function startListening() {
+            alert('🎵 Launching your personalized music experience...\n\nAI is analyzing your mood and creating the perfect playlist for this moment! 🎧✨');
+        }
+
+        function exploreFeatures() {
+            document.getElementById('discover').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Music player functions
+        let isPlaying = false;
+
+        function togglePlay() {
+            const playBtn = document.getElementById('playBtn');
+            isPlaying = !isPlaying;
+            
+            if (isPlaying) {
+                playBtn.textContent = '⏸️';
+                alert('🎵 Now playing "Neural Harmony" - AI Generated track perfectly matched to your current mood! 🎧');
+            } else {
+                playBtn.textContent = '▶️';
+                alert('⏸️ Music paused. Your AI DJ is waiting for you! 🎵');
+            }
+        }
+
+        function previousTrack() {
+            alert('⏮️ Switching to previous track in your AI-curated flow... 🎵');
+        }
+
+        function nextTrack() {
+            alert('⏭️ AI is selecting the perfect next song based on your listening pattern... 🎵');
+        }
+
+        // Playlist functions
+        function openPlaylist(type) {
+            const messages = {
+                focus: '🧘 Opening Deep Focus Flow...\nAI-optimized binaural beats and ambient sounds for maximum concentration! 🎵',
+                workout: '💪 Loading High Energy Pump...\nBPM perfectly matched to your workout intensity! 🔥',
+                chill: '🌙 Starting Midnight Vibes...\nSmooth transitions for the perfect late-night atmosphere... ✨',
+                discover: '🔮 Opening Discovery Mix...\nPrepare to meet your next favorite artist! 🎵',
+                social: '🎉 Loading Friend Zone playlist...\nMusic that brings people together! 👥',
+                ai: '🤖 Playing AI Compositions...\nOriginal music created just for you by artificial intelligence! 🎵'
+            };
+            alert(messages[type] || '🎵 Loading playlist...');
+        }
+
+        function openMusicAssistant() {
+            alert('🎧 AI Music Assistant Activated!\n\n"Hello! I\'m your personal music AI. I can:\n\n🎵 Create mood-based playlists\n🎧 Recommend new artists\n🎤 Control playback with voice\n🎯 Analyze your music taste\n📊 Show listening insights\n🎨 Customize your experience\n\nWhat kind of music matches your vibe right now?"');
+        }
+
+        // Smooth scrolling for navigation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+
+        // Enhanced animations for cards
+        document.querySelectorAll('.feature-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-20px) rotateX(10deg)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) rotateX(0deg)';
+            });
+        });
+
+        document.querySelectorAll('.playlist-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.08) translateY(-10px)';
+                this.style.boxShadow = '0 25px 50px rgba(255, 0, 128, 0.4)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1) translateY(0)';
+                this.style.boxShadow = 'none';
+            });
+        });
+
+        // Dynamic background color changes
+        let colorIndex = 0;
+        const colors = [
+            'radial-gradient(circle at 30% 70%, rgba(100, 50, 150, 0.3) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(50, 120, 100, 0.25) 0%, transparent 50%), radial-gradient(circle at 10% 30%, rgba(80, 60, 140, 0.2) 0%, transparent 50%), linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%)',
+            'radial-gradient(circle at 70% 30%, rgba(50, 120, 100, 0.25) 0%, transparent 50%), radial-gradient(circle at 20% 80%, rgba(80, 60, 140, 0.2) 0%, transparent 50%), radial-gradient(circle at 90% 10%, rgba(100, 50, 150, 0.3) 0%, transparent 50%), linear-gradient(135deg, #1a1a2e 0%, #0a0a0a 100%)',
+            'radial-gradient(circle at 50% 50%, rgba(80, 60, 140, 0.2) 0%, transparent 50%), radial-gradient(circle at 10% 90%, rgba(100, 50, 150, 0.3) 0%, transparent 50%), radial-gradient(circle at 90% 10%, rgba(50, 120, 100, 0.25) 0%, transparent 50%), linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%)'
+        ];
+
+        setInterval(() => {
+            const audioBg = document.querySelector('.audio-bg');
+            colorIndex = (colorIndex + 1) % colors.length;
+            audioBg.style.background = colors[colorIndex];
+        }, 5000);
+
+        // Initialize everything when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            createSoundWaves();
+            createMusicNotes();
+            
+            // Add some sparkle to the hero title
+            const heroTitle = document.querySelector('.hero h1');
+            setInterval(() => {
+                heroTitle.style.textShadow = `0 0 ${15 + Math.random() * 15}px rgba(120, 70, 180, ${0.2 + Math.random() * 0.3})`;
+            }, 1000);
+        });
+
+        // Add parallax effect to hero
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const hero = document.querySelector('.hero');
+            const rate = scrolled * -0.3;
+            hero.style.transform = `translateY(${rate}px)`;
+        });
+
+        // Music widget pulse effect
+        setInterval(() => {
+            const widget = document.querySelector('.music-widget');
+            widget.style.boxShadow = `0 ${10 + Math.random() * 20}px ${30 + Math.random() * 20}px rgba(255, 0, 128, ${0.4 + Math.random() * 0.3})`;
+        }, 2000);
+    </script>
